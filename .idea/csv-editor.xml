@@ -94,6 +94,20 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\Parsed\LIS PENDENS-Jan012023-Feb242023.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Parsed\LIS PENDENS-Sep202022-Feb242023.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\Parsed\LIS PENDENSFeb232023-Feb242023.csv">
           <value>
             <Attribute>
@@ -109,6 +123,20 @@
           </value>
         </entry>
         <entry key="\Parsed\PROBATE-Dec242022-Feb242023Estate.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Parsed\PROBATE-Jan012023-Feb242023Estate.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Parsed\PROBATE-Sep202022-Feb242023Estate.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -144,6 +172,13 @@
           </value>
         </entry>
         <entry key="\Parsed\Tax Deed-Aug012022-Feb242023.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Parsed\Tax Deed-Sep012022-Feb242023.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
