@@ -11,6 +11,9 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import JudgementDuvalCounty
 
 
 # chrome settings
@@ -35,7 +38,7 @@ docTypes = {
     "lis pendens": "LIS PENDENS (LP)",
     "tax deed": "TAX DEED (TXD)",
     "lien": "LIEN (LN)",
-    "judgement": "JUDGEMENT (JDG)"
+    "judgment": "JUDGMENT (JDG)"
 }
 
 # List of Property Uses that matter
@@ -160,8 +163,13 @@ def onCoreScrape(doctype):
     # URL for Duval County
     url = "https://oncore.duvalclerk.com/search/SearchTypeDocType"
 
-    download_path = os.getcwd() + "/Downloads/"
-    prefs = {"download.default_directory": download_path}
+    download_path =  os.getcwd() + "\\Downloads\\"
+    prefs = {"download.default_directory": download_path,
+             "download.prompt_for_download": False,
+             "download.directory_upgrade": True,
+             "safebrowsing_for_trusted_sources_enabled": False,
+             "safebrowsing.enabled": False
+             }
     chrome_options.add_experimental_option("prefs", prefs)
     driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
@@ -182,8 +190,7 @@ def onCoreScrape(doctype):
     driver.find_element(By.ID, "RecordDateTo").send_keys(EndDate)
     time.sleep(3)
     driver.find_element(By.ID, "btnSearch").click()
-    time.sleep(3)
-    driver.find_element(By.ID, "btnCsvButton").click()
+    WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.ID, "btnCsvButton"))).click()
     time.sleep(5)
     driver.quit()
     return print("Downloaded " + doctype + " for " + StartDate + " to " + EndDate)
@@ -219,7 +226,7 @@ def CleanUp():
     # if the row of RE# does not have 11 characters place 0's in front of the RE# till it has 11 characters
     RENumber = DataFrame["RE#"].tolist()
     for i in range(len(RENumber)):
-        # if the RE# is Nan the replace it with 0
+        # if the RE# is Nan then replace it with 0
         if pd.isna(RENumber[i]):
             RENumber[i] = "0"
         if len(RENumber[i]) < 11:
@@ -336,7 +343,7 @@ def PropertySearch(dataframe):
             StreetAddress2.append("Not Found")
 
         # Separate StreetAddress2 by white space if StreetAddress2 is not "Not Found"
-        # Sometimes the Address contains a city thats two words so we need to check if the length of the list is 4
+        # Sometimes the Address contains a city that's two words we need to check if the length of the list is 4
         # if it is then we need to combine the first two words in the list to get the city
         # if it is not then we can just use the first word in the list to get the city
         if StreetAddress2[i] != "Not Found":
@@ -428,77 +435,6 @@ def PropertySearch(dataframe):
         os.remove("Downloads/SearchResults.csv")
 
 
-def CleanupJudgement():
-
-    judgementData = pd.read_csv(os.getcwd() + "/Downloads/SearchResults.csv")
-
-    # Drop all rows that have NaN in the "DocLegalDescription" column
-    judgementData.dropna(subset=["DocLegalDescription"], inplace=True)
-    judgementData.reset_index(drop=True, inplace=True)
-
-    # Copy any Rows that have "PhysicalStreetAddress" in the "DocLegalDescription" column to a new column called "StreetAddress"
-    judgementData["StreetAddress"] = judgementData["DocLegalDescription"].where(judgementData["DocLegalDescription"].str.contains("PHYSICAL STREET ADDRESS"))
-    # Only keep what comes after "PhysicalStreetAddress" in the "StreetAddress" column
-    judgementData["StreetAddress"] = judgementData["StreetAddress"].str.split("PHYSICAL STREET ADDRESS").str[1]
-
-    # Copy the first Set of numbers that look like 445 or 1810 or 10204 in the "StreetAddress" column to a new column called "StreetNumber"
-    judgementData["StreetNumber"] = judgementData["StreetAddress"].str.extract(r'(\b\d{3,5}\b)')
-    # Drop just the first set of numbers
-    judgementData["StreetAddress"] = judgementData["StreetAddress"].str.replace(r'(\b\d{3,5}\b)', "", 1, regex=True)
-
-    # Using the global list "RoadPrefixList", Copy the first instance of a road prefix in the "StreetAddress" column to a new column called "StreetPrefix"
-    judgementData["StreetPrefix"] = judgementData["StreetAddress"].str.extract(r'(\b' + '|'.join(RoadPrefixList) + r'\b)')
-    # Drop just the first instance of a road prefix
-    judgementData["StreetAddress"] = judgementData["StreetAddress"].str.replace(r'(\b' + '|'.join(RoadPrefixList) + r'\b)', "", 1, regex=True)
-
-    # if there is a number that looks like "#402" in the street address column, copy that number to a new column called
-    # Unit"
-    # and then drop the number from the "StreetAddress" column
-    judgementData["Unit"] = judgementData["StreetAddress"].str.extract(r'(\#\d{1,4})')
-    judgementData["StreetAddress"] = judgementData["StreetAddress"].str.replace(r'(\#\d{1,4})', "", regex=True)
-    # if there is a number that looks like "APT 402" in the street address column, copy that number to a new column called "Unit"
-    # and then drop the number from the "StreetAddress" column
-    judgementData["Unit"] = judgementData["StreetAddress"].str.extract(r'(\b[A-Z]{3}\s\d{1,4}\b)')
-    judgementData["StreetAddress"] = judgementData["StreetAddress"].str.replace(r'(\b[A-Z]{3}\s\d{1,4}\b)', "", regex=True)
-    # Drop any instance of "APT" in the "StreetAddress" column but keep the rest of the string
-    judgementData["StreetAddress"] = judgementData["StreetAddress"].str.replace(r'(\b[A-Z]{3}\b)', "", regex=True)
-
-    # Remove any Cardinal Directions from the "StreetAddress" column and put it into its own column called "CardinalDirection"
-    # include NW, NE, SW, SE, N, S, E, W and replace the characters with a space
-    judgementData["CardinalDirection"] = judgementData["StreetAddress"].str.extract(r'(\b[NW|NE|SW|SE|N|S|E|W]{1,2}\b)')
-    judgementData["StreetAddress"] = judgementData["StreetAddress"].str.replace(r'(\b[NW|NE|SW|SE|N|S|E|W]{1,2}\b)', "", regex=True)
-
-    # Copy any Rows that Contain a "PIN" in the "DocLegalDescription" column to a new column called "PIN"
-    judgementData["PIN"] = judgementData["DocLegalDescription"].where(judgementData["DocLegalDescription"].str.contains("PIN"))
-    # If There is a PIN Find the PIN that will look like xxxxxx-xxxx and drop the rest of the text
-    judgementData["PIN"] = judgementData["PIN"].str.extract(r'(\\d{4}-\d{4}|\d{6}-\d{4}|\d{4}-\d{4}|\d{4} \d{4})')
-
-    # The Last 5 numbers in street address will be the Zip Code
-    judgementData["ZipCode"] = judgementData["StreetAddress"].str.extract(r'(\d{5})')
-    # Drop the last 5 numbers from the "StreetAddress" column
-    judgementData["StreetAddress"] = judgementData["StreetAddress"].str.replace(r'(\d{5})', "", regex=True)
-    # the Last Two Characters in the "StreetAddress" column will be the State
-    judgementData["State"] = judgementData["StreetAddress"].str.extract(r'(\b[A-Z]{2}\b)')
-    # Drop the last two characters from the "StreetAddress" column
-    judgementData["StreetAddress"] = judgementData["StreetAddress"].str.replace(r'(\b[A-Z]{2}\b)', "", regex=True)
-    # The City Should match a city in the "CityList" global list
-    judgementData["City"] = judgementData["StreetAddress"].str.extract(r'(\b' + '|'.join(Cities) + r'\b)')
-    # Drop the City from the "StreetAddress" column
-    judgementData["StreetAddress"] = judgementData["StreetAddress"].str.replace(r'(\b' + '|'.join(Cities) + r'\b)', "", regex=True)
-
-    # Remove any extra spaces from the "StreetAddress" column
-    judgementData["StreetAddress"] = judgementData["StreetAddress"].str.replace(r'(\s{2,})', " ", regex=True)
-
-    # Drop the "DocLegalDescription" column
-    judgementData = judgementData.drop(columns=["DocLegalDescription", "Consideration", "DocLink", "BookType", "BookPage", "InstrumentNumber"])
-
-    # No limit on number of columns shown
-    pd.set_option('display.max_columns', None)
-    print(judgementData)
-    judgementData.to_csv(os.getcwd() + "/Downloads/Judgement.csv", index=False)
-    return judgementData
-
-
 # StartDate, EndDate = Automated()
 StartDate, EndDate = UnAutomated()
 onCoreScrape("probate")
@@ -507,16 +443,15 @@ PropertySearch(df)
 onCoreScrape("lien")
 df = CleanUp()
 PropertySearch(df)
-# onCoreScrape("judgement")
-# df = CleanUp("judgement")
-# PropertySearch(df)
+onCoreScrape("tax deed")
+df = CleanUp()
+PropertySearch(df)
 # StartDate, EndDate = UnAutomated()
 onCoreScrape("lis pendens")
 df = CleanUp()
 PropertySearch(df)
 StartDate, EndDate = UnAutomated()
-onCoreScrape("tax deed")
-df = CleanUp()
-PropertySearch(df)
+onCoreScrape("judgment")
+df = JudgementDuvalCounty.CleanJudgement()
+JudgementDuvalCounty.PropertySearch()
 
-# CleanupJudgement()
