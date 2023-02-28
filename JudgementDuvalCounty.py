@@ -230,6 +230,7 @@ def PropertySearch():
     os.remove(os.getcwd() + "/Downloads/JudgementAddresses.csv")
     os.remove(os.getcwd() + "/Downloads/JudgementPINS.csv")
     os.remove(os.getcwd() + "/Downloads/SearchResults.csv")
+    print(CompletedData)
     CompletedData.to_csv(FileName, index=False)
 
 def CleanJudgement():
