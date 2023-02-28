@@ -36,7 +36,7 @@ EndDate = '1/13/2021'
 docTypes = {
     "probate": "PROBATE (PROB)",
     "lis pendens": "LIS PENDENS (LP)",
-    "tax deed": "TAX DEED (TXD)",
+    "tax deed": "NOTICE OF TAX DEED SALE (NTD)",
     "lien": "LIEN (LN)",
     "judgment": "JUDGMENT (JDG)"
 }
