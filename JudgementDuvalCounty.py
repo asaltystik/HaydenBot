@@ -23,19 +23,6 @@ PropertyUse = {
     "0800 Multi-Family Units 2-9"
 }
 
-Cities = {
-    "Jacksonville",
-    "Jacksonville Beach",
-    "Atlantic Beach",
-    "Neptune Beach",
-    "Baldwin",
-    "JACKSONVILLE",
-    "JACKSONVILLE BEACH",
-    "ATLANTIC BEACH",
-    "NEPTUNE BEACH",
-    "BALDWIN"
-}
-
 RoadPrefixList = {
     "Ave",
     "Blvd",
