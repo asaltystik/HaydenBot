@@ -3,20 +3,6 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
-        <entry key="\Downloads\Judgement.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Downloads\Judgement1.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\Downloads\JudgementAddresses.csv">
           <value>
             <Attribute>
@@ -25,13 +11,6 @@
           </value>
         </entry>
         <entry key="\Downloads\JudgementPINS.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Downloads\JudgementParsed.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
@@ -52,98 +31,7 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\ParsedTax DeedJan132021-Jan132021.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Parsed\LIEN-Dec012022-Feb242023.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Parsed\LIEN-Dec242022-Feb242023.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\Parsed\LIEN-Sep012022-Feb272023.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Parsed\LIEN-Sep202022-Feb242023.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Parsed\LIS PENDENS-Dec242022-Feb242023.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Parsed\LIS PENDENS-Jan012023-Feb242023.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Parsed\LIS PENDENS-Sep202022-Feb242023.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Parsed\PROBATE-Dec242022-Feb242023Estate.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Parsed\PROBATE-Feb262023-Feb272023Estate.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Parsed\PROBATE-Jan012023-Feb242023Estate.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Parsed\PROBATE-Sep202022-Feb242023Estate.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Parsed\Tax Deed-Aug012022-Feb242023.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Parsed\Tax Deed-Sep012022-Feb242023.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

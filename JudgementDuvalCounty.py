@@ -227,6 +227,9 @@ def PropertySearch():
     # make today a string
     today = str(today)
     FileName = os.getcwd() + "/Parsed/JudgementParsed-" + today + ".csv"
+    os.remove(os.getcwd() + "/Downloads/JudgementAddresses.csv")
+    os.remove(os.getcwd() + "/Downloads/JudgementPINS.csv")
+    os.remove(os.getcwd() + "/Downloads/SearchResults.csv")
     CompletedData.to_csv(FileName, index=False)
 
 def CleanJudgement():
