@@ -191,7 +191,13 @@ def onCoreScrape(doctype):
     driver.find_element(By.ID, "RecordDateTo").send_keys(EndDate)
     time.sleep(3)
     driver.find_element(By.ID, "btnSearch").click()
-    WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.ID, "btnCsvButton"))).click()
+    # WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.ID, "btnCsvButton"))).click()
+    # if the btnCSVButton does not exist then the search returned no results and the function will return a message
+    try:
+        WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.ID, "btnCsvButton"))).click()
+    except:
+        driver.quit()
+        return print("No Results for " + doctype + " for " + StartDate + " to " + EndDate)
     time.sleep(5)
     driver.quit()
     return print("Downloaded " + doctype + " for " + StartDate + " to " + EndDate)
@@ -201,9 +207,13 @@ def CleanUp():
     # This function will find any rows that have a "Case Number" deleting any rows that do not have a case number,
     # and then it will save the csv file to be used in the next function
 
-    # Open the CSV File in Downloads/Probate
-    DataFrame = pd.read_csv("Downloads/SearchResults.csv")
+    # Open the CSV File in Downloads/SearchResults.csv if it does not exist then the function will return a message
+    if os.path.exists(os.getcwd() + "/Downloads/SearchResults.csv"):
+        DataFrame = pd.read_csv(os.getcwd() + "/Downloads/SearchResults.csv")
+    else:
+        return print("No File to Clean")
     # drop any rows that contain a NaN value in the DocLegalDescription column
+    # print(DataFrame)
     DataFrame.dropna(subset=["DocLegalDescription"], inplace=True)
     # Drop any rows that do not contain "PIN" in the DocLegalDescription column
     DataFrame = DataFrame[DataFrame["DocLegalDescription"].str.contains("PIN")]
@@ -239,7 +249,7 @@ def CleanUp():
     # rename DirectName to Full Name
     DataFrame.rename(columns={"DirectName": "Full Name", "DocTypeDescription": "Doc Type"}, inplace=True)
     DataFrame = DataFrame[["Doc Type", "RE#", "Full Name", "RecordDate", "IndirectName"]]
-    # print(df)
+    # print(DataFrame)
 
     # Save the csv file to the Downloads/Probate folder good for comparing the data
     # savePath = os.getcwd() + "/Downloads/" + docType + ".csv"
@@ -247,12 +257,17 @@ def CleanUp():
     return DataFrame
 
 
-def PropertySearch(dataframe):
+def PropertySearch(dataframe=pd.DataFrame()):
     # This Function will Search the Property appraiser website using the RE# from the Dataframe and then check if
     # "Property Use" is in the Property Use list. If it is then it will record the Mailing Address, Mailing City,
     # Mailing Zip, Primary Street Address, Street City, Street Zip, Property Use, and Full Name to a new Dataframe
 
-    # print(df)
+    # if SearchResults.csv does not exist then the function will return a message
+    if not os.path.exists(os.getcwd() + "/Downloads/SearchResults.csv"):
+        return print("The Dataframe is empty")
+    # If the Dataframe is empty then return a message saying that the Dataframe is empty
+    if dataframe.empty:
+        return print("The Dataframe is empty")
 
     # create a list of RE# from the Dataframe
     REList = dataframe["RE#"].tolist()
@@ -451,9 +466,32 @@ def DeathCleanup():
     df.to_csv(os.getcwd() + "/Parsed/DeathCertificates-" + SaveDate1 + "-" + SaveDate2 + ".csv", index=False)
     return df
 
+def RunDaily():
+    global StartDate, EndDate
+    StartDate = (datetime.today() - timedelta(days=1)).strftime('%m/%d/%Y')
+    EndDate = datetime.today().strftime('%m/%d/%Y')
+    onCoreScrape("probate")
+    df = CleanUp()
+    PropertySearch(df)
+    onCoreScrape("lien")
+    df = CleanUp()
+    PropertySearch(df)
+    onCoreScrape("tax deed")
+    df = CleanUp()
+    PropertySearch(df)
+    onCoreScrape("lis pendens")
+    df = CleanUp()
+    PropertySearch(df)
+    onCoreScrape("judgment")
+    df = JudgementDuvalCounty.CleanJudgement()
+    JudgementDuvalCounty.PropertySearch()
+    onCoreScrape("death")
+    df = DeathCleanup()
 
+
+RunDaily()
 # StartDate, EndDate = Automated()
-StartDate, EndDate = UnAutomated()
+# StartDate, EndDate = UnAutomated()
 # onCoreScrape("probate")
 # df = CleanUp()
 # PropertySearch(df)
@@ -461,7 +499,7 @@ StartDate, EndDate = UnAutomated()
 # df = CleanUp()
 # PropertySearch(df)
 # onCoreScrape("tax deed")
-# df = CleanUp()
+#  = CleanUp()
 # PropertySearch(df)
 # StartDate, EndDate = UnAutomated()
 # onCoreScrape("lis pendens")
@@ -471,6 +509,6 @@ StartDate, EndDate = UnAutomated()
 # onCoreScrape("judgment")
 # df = JudgementDuvalCounty.CleanJudgement()
 # JudgementDuvalCounty.PropertySearch()
-onCoreScrape("death")
-df = DeathCleanup()
+# onCoreScrape("death")
+# df = DeathCleanup()
 
