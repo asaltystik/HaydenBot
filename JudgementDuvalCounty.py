@@ -283,13 +283,10 @@ def CleanJudgement():
     df.drop(df[df["Street Name"].str.len() < 3].index, inplace=True)
     df.reset_index(drop=True, inplace=True)
 
-    #get todays date
-
+    # get todays date
 
     df.to_csv(os.getcwd() + "/Downloads/JudgementAddresses.csv", index=False)
     pinDF.to_csv(os.getcwd() + "/Downloads/JudgementPINS.csv", index=False)
-
-
 
 # Old code
 # def CleanupJudgement():
