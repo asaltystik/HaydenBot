@@ -3,20 +3,6 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
-        <entry key="\Downloads\JudgementAddresses.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\Downloads\JudgementPINS.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\Downloads\JudgementParsed2023-02-27.csv">
           <value>
             <Attribute>
@@ -31,7 +17,35 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\Parsed\DeathCertificates-Jan012023-Mar032023.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Parsed\DeathCertificatesJan012023-Mar032023.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=":" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Parsed\JudgementParsed-2023-02-28.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\Parsed\LIEN-Sep012022-Feb272023.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Parsed\Tax Deed-Sep012022-Feb272023.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

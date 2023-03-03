@@ -38,7 +38,8 @@ docTypes = {
     "lis pendens": "LIS PENDENS (LP)",
     "tax deed": "NOTICE OF TAX DEED SALE (NTD)",
     "lien": "LIEN (LN)",
-    "judgment": "JUDGMENT (JDG)"
+    "judgment": "JUDGMENT (JDG)",
+    "death": "DEATH CERTIFICATE (DTH/CTF)"
 }
 
 # List of Property Uses that matter
@@ -435,6 +436,22 @@ def PropertySearch(dataframe):
         os.remove("Downloads/SearchResults.csv")
 
 
+def DeathCleanup():
+    # read SearchResults.csv into a Dataframe
+    df = pd.read_csv(os.getcwd() + "/Downloads/SearchResults.csv")
+    # Only keep DirectName, RecordDate, columns
+    df = df[["DirectName"]]
+    # Rename the DirectName column to "Name"
+    df = df.rename(columns={"DirectName": "Name"})
+    df["Name"] = df["Name"].str.replace("DECEASED", "")
+
+    print(df)
+    SaveDate1 = datetime.strptime(StartDate, "%m/%d/%Y").strftime("%b%d%Y")
+    SaveDate2 = datetime.strptime(EndDate, "%m/%d/%Y").strftime("%b%d%Y")
+    df.to_csv(os.getcwd() + "/Parsed/DeathCertificates-" + SaveDate1 + "-" + SaveDate2 + ".csv", index=False)
+    return df
+
+
 # StartDate, EndDate = Automated()
 StartDate, EndDate = UnAutomated()
 # onCoreScrape("probate")
@@ -443,15 +460,17 @@ StartDate, EndDate = UnAutomated()
 # onCoreScrape("lien")
 # df = CleanUp()
 # PropertySearch(df)
-#onCoreScrape("tax deed")
-#df = CleanUp()
-#PropertySearch(df)
+# onCoreScrape("tax deed")
+# df = CleanUp()
+# PropertySearch(df)
 # StartDate, EndDate = UnAutomated()
 # onCoreScrape("lis pendens")
 # df = CleanUp()
 # PropertySearch(df)
-StartDate, EndDate = UnAutomated()
-onCoreScrape("judgment")
-df = JudgementDuvalCounty.CleanJudgement()
-JudgementDuvalCounty.PropertySearch()
+# StartDate, EndDate = UnAutomated()
+# onCoreScrape("judgment")
+# df = JudgementDuvalCounty.CleanJudgement()
+# JudgementDuvalCounty.PropertySearch()
+onCoreScrape("death")
+df = DeathCleanup()
 
