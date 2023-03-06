@@ -15,7 +15,6 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import JudgementDuvalCounty
 
-
 # chrome settings
 chrome_options = webdriver.ChromeOptions()
 # chrome_options.add_argument("--headless")
@@ -30,7 +29,6 @@ Yesterday = Today - timedelta(days=1)
 # Start Date and End Date for search
 StartDate = '1/13/2021'
 EndDate = '1/13/2021'
-
 
 # Create Dictionary for Doc Types
 docTypes = {
@@ -120,6 +118,7 @@ Cities = {
     "BALDWIN"
 }
 
+
 # Input the Start Date and End Date for the search if None then it will default to yesterday and today
 def SearchDates(startDate=Yesterday, endDate=Today):
     if startDate == Yesterday:
@@ -133,6 +132,7 @@ def SearchDates(startDate=Yesterday, endDate=Today):
         endDate = datetime.strptime(endDate, "%m/%d/%Y")
         endDate = endDate.strftime("%m/%d/%Y")
     return startDate, endDate
+
 
 def Automated():
     date1 = Yesterday.strftime("%m/%d/%Y")
@@ -164,7 +164,7 @@ def onCoreScrape(doctype):
     # URL for Duval County
     url = "https://oncore.duvalclerk.com/search/SearchTypeDocType"
 
-    download_path =  os.getcwd() + "\\Downloads\\"
+    download_path = os.getcwd() + "\\Downloads\\"
     prefs = {"download.default_directory": download_path,
              "download.prompt_for_download": False,
              "download.directory_upgrade": True,
@@ -234,7 +234,8 @@ def CleanUp():
     # use regex to find the PIN which looks like this: 1234-5678 from the DocLegalDescription Column
     # it could also be in the formats of xxxxxx-xxxx, xxxx-xxxx, xxxx xxxx
     # and then copy the PIN to a new column called "RE#"
-    DataFrame["RE#"] = DataFrame["DocLegalDescription"].str.extract(r"(\d{4}-\d{4}|\d{6}-\d{4}|\d{4}-\d{4}|\d{4} \d{4})")
+    DataFrame["RE#"] = DataFrame["DocLegalDescription"].str.extract(
+        r"(\d{4}-\d{4}|\d{6}-\d{4}|\d{4}-\d{4}|\d{4} \d{4})")
 
     # if the row of RE# does not have 11 characters place 0's in front of the RE# till it has 11 characters
     RENumber = DataFrame["RE#"].tolist()
@@ -313,7 +314,6 @@ def PropertySearch(dataframe=pd.DataFrame()):
         soup = BeautifulSoup(r.content, "html.parser")
         # print(soup.prettify())
 
-
         # if the url is https://paopropertysearch.coj.net/Basic/Results.aspx?Results=None then set everything to "Not Found"
         # and append it to the list
         if r.url == "https://paopropertysearch.coj.net/Basic/Results.aspx?Results=None":
@@ -341,14 +341,16 @@ def PropertySearch(dataframe=pd.DataFrame()):
         # and save it to MailingAddressStreet
         # if the id is not found then append "Not Found" to the list
         try:
-            MailingAddress1.append(soup.find(id="ctl00_cphBody_repeaterOwnerInformation_ctl00_lblMailingAddressLine1").text)
+            MailingAddress1.append(
+                soup.find(id="ctl00_cphBody_repeaterOwnerInformation_ctl00_lblMailingAddressLine1").text)
             for prefix in RoadPrefixList:
                 if prefix in MailingAddress1[i]:
                     MailingAddress1[i] = MailingAddress1[i].split(prefix)[0] + prefix
         except:
             MailingAddress1.append("Not Found")
         try:
-            MailingAddress2.append(soup.find(id="ctl00_cphBody_repeaterOwnerInformation_ctl00_lblMailingAddressLine3").text)
+            MailingAddress2.append(
+                soup.find(id="ctl00_cphBody_repeaterOwnerInformation_ctl00_lblMailingAddressLine3").text)
         except:
             MailingAddress2.append("Not Found")
 
@@ -417,12 +419,13 @@ def PropertySearch(dataframe=pd.DataFrame()):
 
     # Create a new Dataframe with the lists in this order: Doc Type, First Name, Last Name, Street Address, Street City,
     # Street State, Street Zip, Mailing Address, Mailing City, Mailing State, Mailing Zip
-    CompletedData = pd.DataFrame(list(zip(DocTypeList, recordDate, indirectName, FirstName, LastName, StreetAddress1, StreetCity, StreetState,
-                                          StreetZip, MailingAddress1, MailingCity, MailingState, MailingZip,
-                                          PropertyUsage)), columns=["Doc Type", "Record Date", "Indirect Name", "First Name", "Last Name",
-                                                                    "Street Address", "Street City", "Street State",
-                                                                    "Street Zip", "Mailing Address", "Mailing City",
-                                                                    "Mailing State", "Mailing Zip", "Property Usage"])
+    CompletedData = pd.DataFrame(
+        list(zip(DocTypeList, recordDate, indirectName, FirstName, LastName, StreetAddress1, StreetCity, StreetState,
+                 StreetZip, MailingAddress1, MailingCity, MailingState, MailingZip,
+                 PropertyUsage)), columns=["Doc Type", "Record Date", "Indirect Name", "First Name", "Last Name",
+                                           "Street Address", "Street City", "Street State",
+                                           "Street Zip", "Mailing Address", "Mailing City",
+                                           "Mailing State", "Mailing Zip", "Property Usage"])
     # Drop all rows that have "Not Found" in any column
     CompletedData = CompletedData[CompletedData["Street Address"] != "Not Found"]
     CompletedData = CompletedData[CompletedData["Street City"] != "Not Found"]
@@ -488,6 +491,7 @@ def DeathCleanup():
     df.to_csv(os.getcwd() + "/Parsed/DeathCertificates-" + SaveDate1 + "-" + SaveDate2 + ".csv", index=False)
     return df
 
+
 def RunDaily():
     global StartDate, EndDate
     StartDate = (datetime.today() - timedelta(days=1)).strftime('%m/%d/%Y')
@@ -509,6 +513,7 @@ def RunDaily():
     JudgementDuvalCounty.PropertySearch()
     onCoreScrape("death")
     df = DeathCleanup()
+
 
 def Menu():
     ExitSearch = False
@@ -574,7 +579,7 @@ def Menu():
                     SaveDate1 = datetime.strptime(StartDate, "%m/%d/%Y").strftime("%b%d%Y")
                     SaveDate2 = datetime.strptime(EndDate, "%m/%d/%Y").strftime("%b%d%Y")
                     os.rename(os.getcwd() + "/Parsed/JudgementParsed.csv",
-                            os.getcwd() + "/Parsed/JudgementParsed-" + SaveDate1 + "-" + SaveDate2 + ".csv")
+                              os.getcwd() + "/Parsed/JudgementParsed-" + SaveDate1 + "-" + SaveDate2 + ".csv")
             # If the user's input is 6, run the Death option
             elif choice == "6":
                 StartDate, EndDate = UnAutomated()
@@ -586,8 +591,6 @@ def Menu():
     elif choice == "3":
         exit()
     Menu()
-
-
 
 
 # RunDaily()
@@ -614,4 +617,3 @@ def Menu():
 # df = DeathCleanup()
 
 Menu()
-
