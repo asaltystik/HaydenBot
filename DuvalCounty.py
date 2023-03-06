@@ -197,7 +197,9 @@ def onCoreScrape(doctype):
         WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.ID, "btnCsvButton"))).click()
     except:
         driver.quit()
-        return print("No Results for " + doctype + " for " + StartDate + " to " + EndDate)
+        print("No Results for " + doctype + " During " + StartDate + " to " + EndDate)
+        print("Search Date might be too wide, or there are no results for a daily search.")
+        return print("Please try refining your search to a usable date range.")
     time.sleep(5)
     driver.quit()
     return print("Downloaded " + doctype + " for " + StartDate + " to " + EndDate)
@@ -298,7 +300,9 @@ def PropertySearch(dataframe=pd.DataFrame()):
     # https://paopropertysearch.coj.net/Basic/Detail.aspx?RE=xxxxxxxxxxx where the xxxxxxxxxx is the RE# without dashes
     URLList = []
     for i in range(len(REList)):
-        URLList.append("https://paopropertysearch.coj.net/Basic/Detail.aspx?RE=" + REList[i].replace("-", ""))
+        REList[i] = REList[i].replace("-", "")
+        REList[i] = REList[i].replace(" ", "")
+        URLList.append("https://paopropertysearch.coj.net/Basic/Detail.aspx?RE=" + REList[i])
     # print(URLList)
 
     # Iterate through the URLList and open each URL using requests and then use BeautifulSoup to parse the HTML
@@ -309,7 +313,25 @@ def PropertySearch(dataframe=pd.DataFrame()):
         soup = BeautifulSoup(r.content, "html.parser")
         # print(soup.prettify())
 
-        #
+
+        # if the url is https://paopropertysearch.coj.net/Basic/Results.aspx?Results=None then set everything to "Not Found"
+        # and append it to the list
+        if r.url == "https://paopropertysearch.coj.net/Basic/Results.aspx?Results=None":
+            NameList.append("Not Found")
+            MailingAddress1.append("Not Found")
+            MailingAddress2.append("Not Found")
+            MailingCity.append("Not Found")
+            MailingZip.append("Not Found")
+            MailingState.append("Not Found")
+            StreetAddress1.append("Not Found")
+            StreetAddress2.append("Not Found")
+            StreetCity.append("Not Found")
+            StreetZip.append("Not Found")
+            StreetState.append("Not Found")
+            PropertyUsage.append("Not Found")
+            FirstName.append("Not Found")
+            LastName.append("Not Found")
+            MiddleName.append("Not Found")
         try:
             NameList.append(soup.find(id="ctl00_cphBody_repeaterOwnerInformation_ctl00_lblOwnerName").text)
         except:
@@ -488,8 +510,87 @@ def RunDaily():
     onCoreScrape("death")
     df = DeathCleanup()
 
+def Menu():
+    ExitSearch = False
+    # print a stylish menu to the console using DocTypes as the options
+    print("Duval County Property Search")
+    # Give the Option to run the program for a specific date range + DocType or just run Daily option
+    print("1. Run Daily")
+    print("2. Run for a specific date range")
+    print("3. Exit")
+    # Get the user's input
+    choice = input("Enter your choice: ")
+    # If the user's input is 1, run the Daily option
+    if choice == "1":
+        RunDaily()
+    # If the user's input is 2, run the specific date range option
+    elif choice == "2":
+        while not ExitSearch:
+            # print a stylish menu to the console using DocTypes as the options
+            print("Select File Type")
+            # Give the Option to run the program for a specific date range + DocType
+            print("1. Probate")
+            print("2. Lien")
+            print("3. Tax Deed")
+            print("4. Lis Pendens")
+            print("5. Judgment")
+            print("6. Death")
+            print("7. Exit")
+            # Get the user's input
+            choice = input("Enter your choice: ")
+            global StartDate, EndDate
+            # If the user's input is 1, run the Probate option
+            if choice == "1":
+                StartDate, EndDate = UnAutomated()
+                onCoreScrape("probate")
+                df = CleanUp()
+                PropertySearch(df)
+            # If the user's input is 2, run the Lien option
+            elif choice == "2":
+                StartDate, EndDate = UnAutomated()
+                onCoreScrape("lien")
+                df = CleanUp()
+                PropertySearch(df)
+            # If the user's input is 3, run the Tax Deed option
+            elif choice == "3":
+                StartDate, EndDate = UnAutomated()
+                onCoreScrape("tax deed")
+                df = CleanUp()
+                PropertySearch(df)
+            # If the user's input is 4, run the Lis Pendens option
+            elif choice == "4":
+                StartDate, EndDate = UnAutomated()
+                onCoreScrape("lis pendens")
+                df = CleanUp()
+                PropertySearch(df)
+            # If the user's input is 5, run the Judgment option
+            elif choice == "5":
+                StartDate, EndDate = UnAutomated()
+                onCoreScrape("judgment")
+                JudgementDuvalCounty.CleanJudgement()
+                JudgementDuvalCounty.PropertySearch()
+                # if /Parsed/JudgementParsed.csv exists, Rename it to JudgementParsed-StartDate-EndDate.csv
+                if os.path.exists(os.getcwd() + "/Parsed/JudgementParsed.csv"):
+                    SaveDate1 = datetime.strptime(StartDate, "%m/%d/%Y").strftime("%b%d%Y")
+                    SaveDate2 = datetime.strptime(EndDate, "%m/%d/%Y").strftime("%b%d%Y")
+                    os.rename(os.getcwd() + "/Parsed/JudgementParsed.csv",
+                            os.getcwd() + "/Parsed/JudgementParsed-" + SaveDate1 + "-" + SaveDate2 + ".csv")
+            # If the user's input is 6, run the Death option
+            elif choice == "6":
+                StartDate, EndDate = UnAutomated()
+                onCoreScrape("death")
+                df = DeathCleanup()
+            # If the user's input is 7, exit the program
+            elif choice == "7":
+                ExitSearch = True
+    elif choice == "3":
+        exit()
+    Menu()
 
-RunDaily()
+
+
+
+# RunDaily()
 # StartDate, EndDate = Automated()
 # StartDate, EndDate = UnAutomated()
 # onCoreScrape("probate")
@@ -511,4 +612,6 @@ RunDaily()
 # JudgementDuvalCounty.PropertySearch()
 # onCoreScrape("death")
 # df = DeathCleanup()
+
+Menu()
 
