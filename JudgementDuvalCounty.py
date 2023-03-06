@@ -1,10 +1,6 @@
 # This Module was Created by: Carick Brandt on 2/27/2023
 # It Cleans up SearchResults.csv for judgement data and then searches the property appraiser site for the relevant data
 import os
-import time
-import datetime
-
-import dateutil.utils
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
@@ -74,6 +70,12 @@ def PropertySearch():
     # for each row in the JudgementAddresses.csv file search the property appraiser site for the relevant data
     df = pd.read_csv(os.getcwd() + "/Downloads/JudgementAddresses.csv")
     Pins = pd.read_csv(os.getcwd() + "/Downloads/JudgementPINS.csv")
+
+    # if df or Pins is empty then delete the files and exit the function
+    if df.empty or Pins.empty:
+        os.remove(os.getcwd() + "/Downloads/JudgementAddresses.csv")
+        os.remove(os.getcwd() + "/Downloads/JudgementPINS.csv")
+        return
 
     # create a list of Full Name from the Dataframe
     # NameList = dataframe["Full Name"].tolist()
@@ -222,11 +224,7 @@ def PropertySearch():
     CompletedData["Street Zip"] = CompletedData["Street Zip"].str[:5]
     CompletedData["Mailing Zip"] = CompletedData["Mailing Zip"].str[:5]
 
-    # Get todays date and add it to the file name
-    today = datetime.date.today()
-    # make today a string
-    today = str(today)
-    FileName = os.getcwd() + "/Parsed/JudgementParsed-" + today + ".csv"
+    FileName = os.getcwd() + "/Parsed/JudgementParsed.csv"
     os.remove(os.getcwd() + "/Downloads/JudgementAddresses.csv")
     os.remove(os.getcwd() + "/Downloads/JudgementPINS.csv")
     os.remove(os.getcwd() + "/Downloads/SearchResults.csv")
