@@ -204,9 +204,17 @@ def PropertySearch():
         except:
             PropertyUsage.append("Not Found")
 
-    CompletedData = pd.DataFrame(list(zip(DocTypeList, recordDate, DirectName, StreetAddress1, StreetCity, StreetState,
+        # Direct Name Should be Split into First Name, Middle Namem, and Last Name
+        LastName.append(NameList[i].split(" ")[0])
+        FirstName.append(NameList[i].split(" ")[1])
+        if len(NameList[i].split(" ")) == 3:
+            MiddleName.append(NameList[i].split(" ")[2])
+        else:
+            MiddleName.append("")
+
+    CompletedData = pd.DataFrame(list(zip(DocTypeList, recordDate, DirectName, FirstName, LastName, StreetAddress1, StreetCity, StreetState,
                             StreetZip, MailingAddress1, MailingCity, MailingState, MailingZip, PropertyUsage)),
-                            columns=["DocType", "Record Date", "Direct Name", "Street Address 1", "Street City",
+                            columns=["DocType", "Record Date", "Direct Name", "First Name", "LastName", "Street Address 1", "Street City",
                             "Street State", "Street Zip", "Mailing Address 1", "Mailing City",
                             "Mailing State", "Mailing Zip", "Property Usage"])
     # Drop all rows that have "Not Found" in the any column
