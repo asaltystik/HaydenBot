@@ -54,6 +54,9 @@ if errorlevel 1 (
     pip3 install undetected-chromedriver
 )
 
+rem create a folder named "Downloads" and "Parsed" in the working directory if it doesn't exist
+if not exist "%ROOT_FOLDER%Downloads" mkdir "%ROOT_FOLDER%Downloads"
+if not exist "%ROOT_FOLDER%Parsed" mkdir "%ROOT_FOLDER%Parsed"
 
 rem Run the Python script
 python3 "%ROOT_FOLDER%%SCRIPT_NAME%"
