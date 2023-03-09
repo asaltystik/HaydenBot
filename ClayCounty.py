@@ -28,7 +28,8 @@ from bs4 import BeautifulSoup
 import requests
 import undetected_chromedriver as uc
 
-global workingDir
+global workingDir, start_date, end_date, doc_type
+global savedate1, savedate2
 workingDir = os.getcwd()
 
 # List of Document Types we are looking for
@@ -49,9 +50,10 @@ def get_date_range():
     print("Example: 1/1/2021 = 01/01/2021")
     start_date = input("Enter the Start Date (MM/DD/YYYY): ")
     end_date = input("Enter the End Date (MM/DD/YYYY): ")
-
-    if start_date > end_date:
-        print("Start Date must be before End Date")
+    savedate1 = start_date.replace("/", "")
+    savedate2 = end_date.replace("/", "")
+    if len(start_date) != 10 or len(end_date) != 10:
+        print("Invalid Date Format")
         return get_date_range()
     else:
         return start_date, end_date
@@ -176,6 +178,7 @@ def parse_excel():
     df["Legal"] = df["Legal"].str.replace("TPW:\d+", "", regex=True)
     df["Legal"] = df["Legal"].str.replace("TPW:\s+", "", regex=True)
     df["Legal"] = df["Legal"].str.replace("TPW: \s+", "", regex=True)
+    df["Legal"] = df["Legal"].str.replace("TPW:", "", regex=True)
     df["Legal"] = df["Legal"].str.replace("RGE: \d+", "", regex=True)
     df["Legal"] = df["Legal"].str.replace("RGE:\d+", "", regex=True)
     df["Legal"] = df["Legal"].str.replace("RGE: \s+", "", regex=True)
@@ -222,41 +225,49 @@ def RowNA(PropertyAddress, PropertyCity, PropertyState, PropertyZip, Name, Maili
 # This Function grabs the relevent information from the website
 def ParseWebsite(driver, PropertyAddress, PropertyCity, PropertyState, PropertyZip, Name, MailingAddress, MailingCity,
                  MailingState, MailingZip, index):
-    text = driver.find_element(By.CSS_SELECTOR,
+    try:
+        text = driver.find_element(By.CSS_SELECTOR,
                                ".module-content > .tabular-data-two-column tr:nth-child(2) span").text
-    PropertyAddress.append(text.split("\n")[0])
-    print("Street: " + PropertyAddress[index])
-    PropertyCity.append(text.split("\n")[1])
-    # Take the number at the very end of PropertyCity and put it in PropertyZip
-    PropertyZip.append(PropertyCity[index].split(" ")[-1])
-    PropertyCity[index] = " ".join(PropertyCity[index].split(" ")[:-1])
-    PropertyState.append("FL")
-    print("City: " + PropertyCity[index])
-    print("State: " + PropertyState[index])
-    print("Zip: " + PropertyZip[index])
+        PropertyAddress.append(text.split("\n")[0])
+        print("Street: " + PropertyAddress[index])
+        PropertyCity.append(text.split("\n")[1])
+        # Take the number at the very end of PropertyCity and put it in PropertyZip
+        PropertyZip.append(PropertyCity[index].split(" ")[-1])
+        PropertyCity[index] = " ".join(PropertyCity[index].split(" ")[:-1])
+        PropertyState.append("FL")
+        print("City: " + PropertyCity[index])
+        print("State: " + PropertyState[index])
+        print("Zip: " + PropertyZip[index])
 
-    text = driver.find_element(By.CSS_SELECTOR, ".three-column-blocks:nth-child(1)").text
-    Name.append(text.split("\n")[0])
-    print("Name: " + Name[index])
-    MailingAddress.append(text.split("\n")[1])
-    print("Mailing Address: " + MailingAddress[index])
-    MailingCity.append(text.split("\n")[2])
+        text = driver.find_element(By.CSS_SELECTOR, ".three-column-blocks:nth-child(1)").text
+        Name.append(text.split("\n")[0])
+        print("Name: " + Name[index])
+        MailingAddress.append(text.split("\n")[1])
+        print("Mailing Address: " + MailingAddress[index])
+        MailingCity.append(text.split("\n")[2])
 
-    # Take the number at the very end of MailingCity and put it in MailingZip
-    MailingZip.append(MailingCity[index].split(" ")[-1])
-    MailingCity[index] = " ".join(MailingCity[index].split(" ")[:-1])
+        # Take the number at the very end of MailingCity and put it in MailingZip
+        MailingZip.append(MailingCity[index].split(" ")[-1])
+        MailingCity[index] = " ".join(MailingCity[index].split(" ")[:-1])
 
-    # take the last word from MailingCity and put it in MailingState
-    MailingState.append(MailingCity[index].split(" ")[-1])
-    MailingCity[index] = " ".join(MailingCity[index].split(" ")[:-1])
-    print("Mailing City: " + MailingCity[index])
-    print("mailing State: " + MailingState[index])
-    print("Mailing Zip: " + MailingZip[index])
+        # take the last word from MailingCity and put it in MailingState
+        MailingState.append(MailingCity[index].split(" ")[-1])
+        MailingCity[index] = " ".join(MailingCity[index].split(" ")[:-1])
+        print("Mailing City: " + MailingCity[index])
+        print("mailing State: " + MailingState[index])
+        print("Mailing Zip: " + MailingZip[index])
+    except:
+        RowNA(PropertyAddress, PropertyCity, PropertyState, PropertyZip, Name, MailingAddress, MailingCity, MailingState,
+              MailingZip, index)
 
 
 # This function will take the dataframe and search https://qpublic.schneidercorp.com/Application.aspx?AppID=830&LayerID=15008&PageTypeID=2&PageID=6754
 # using the legal columns in the Search by Legal Information Section
 def search_by_legal(df):
+    savedate1 = start_date
+    savedate2 = end_date
+    savedate1 = savedate1.replace("/", "-")
+    savedate2 = savedate2.replace("/", "-")
     # Use Udetected Chrome to open this website Thanks Cloudflare
     driver = uc.Chrome()
     driver.get("https://qpublic.schneidercorp.com/Application.aspx?AppID=830&LayerID=15008&PageTypeID=2&PageID=6754")
@@ -269,6 +280,9 @@ def search_by_legal(df):
     PropertyState = []
     PropertyZip = []
     Name = []
+    LastName = []
+    FirstName = []
+    MiddleName = []
     MailingAddress = []
     MailingCity = []
     MailingState = []
@@ -321,7 +335,26 @@ def search_by_legal(df):
             RowNA(PropertyAddress, PropertyCity, PropertyState, PropertyZip, Name,
                   MailingAddress, MailingCity, MailingState, MailingZip, index)
             continue
+
+    # loop through the list of names and split them into first, middle, and last name
+    for i in range(len(Name)):
+        print(Name[i])
+        # if name contains LLC then it is a company and we do not need to split the name
+        if "LLC" in Name[i]:
+            FirstName.append("Company")
+            LastName.append("Company")
+            MiddleName.append("Company")
+        # else split the name into first, middle, and last name
+        elif len(Name[i].split(" ")) > 2:
+            FirstName.append(Name[i].split(" ")[0])
+            LastName.append(Name[i].split(" ")[1])
+        else:
+            FirstName.append(Name[i].split(" ")[0])
+            LastName.append(Name[i].split(" ")[-1])
+
     df["Name"] = Name
+    df["FirstName"] = FirstName
+    df["LastName"] = LastName
     df["PropertyAddress"] = PropertyAddress
     df["PropertyCity"] = PropertyCity
     df["PropertyState"] = PropertyState
@@ -343,14 +376,23 @@ def search_by_legal(df):
     # Drop any rows with an empty column
     df.dropna(inplace=True)
     print(df)
-    df.to_csv(workingDir + "\\SearchResults.csv", index=False)
+    # Split the Dataframe into two depending on if the FirstName is Company
+    dfCompany = df[df["FirstName"] == "Company"]
+    dfPerson = df[df["FirstName"] != "Company"]
+    # remove slashes from the start date and end date
+    CompanySave = workingDir + "\\Parsed\\CompanyList-" + savedate1 + "-" + savedate2 + ".csv"
+    PersonSave = workingDir + "\\Parsed\\PersonList-" + savedate1 + "-" + savedate2 + ".csv"
+    # Save Both Dataframes using the StartDate, EndDate, and DocType
+    dfCompany.to_csv(CompanySave, index=False)
+    dfPerson.to_csv(PersonSave, index=False)
+
 
 
 
 # docType = get_doc_type()
-# start_date, end_date = get_date_range()
+start_date, end_date = get_date_range()
 # driver = init_driver()
-# fill_out_form(start_date="01/01/2023", end_date="03/01/2023", doc_type="CD, J, LN, LP, LPC, PRO")
+fill_out_form(start_date=start_date, end_date=end_date, doc_type="CD, J, LN, LP, LPC, PRO")
 df = parse_excel()
 search_by_legal(df)
 
