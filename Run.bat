@@ -47,5 +47,13 @@ if errorlevel 1 (
     pip3 install requests
 )
 
+rem check if pip installed undetected-chromedriver
+pip3 show undetected-chromedriver > nul 2>&1
+if errorlevel 1 (
+    echo "Undetected-chromedriver is not installed. Installing..."
+    pip3 install undetected-chromedriver
+)
+
+
 rem Run the Python script
 python3 "%ROOT_FOLDER%%SCRIPT_NAME%"
