@@ -18,6 +18,7 @@ import os
 import time
 import pandas as pd
 from selenium import webdriver
+from selenium.common import NoSuchElementException
 from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -32,6 +33,15 @@ workingDir = os.getcwd()
 
 # List of Document Types we are looking for
 doc_types = ["CD", "J", "LN", "LP", "LPC", "PRO"]
+
+DocDict = {
+    "CD": "Certificate of Death",
+    "J": "Judgment",
+    "LN": "Lien",
+    "LP": "Lis Pendens",
+    "LPC": "Lis Pendens Certificate",
+    "PRO": "Probate"
+}
 
 # This function will get the user input for the date range they want to search for
 def get_date_range():
@@ -147,21 +157,21 @@ def parse_excel():
     # Drop any legal descriptions that are null
     df.dropna(subset=["Legal"], inplace=True)
     # if the legal column contains "LOT:" then replace "LOT:" with ""
-    df["Legal"] = df["Legal"].str.replace("LOT: ", "")
-    df["Legal"] = df["Legal"].str.replace("LOT:", "")
+    df["Legal"] = df["Legal"].str.replace("LOT: ", "LOT ")
+    df["Legal"] = df["Legal"].str.replace("LOT:", "LOT ")
     # if the legal column contains "SUB/CON" then replace "SUB/CON" with ""
     df["Legal"] = df["Legal"].str.replace("SUB: ", "")
     df["Legal"] = df["Legal"].str.replace("SUB:", "")
     df["Legal"] = df["Legal"].str.replace("CON: ", "")
-    df["Legal"] = df["Legal"].str.replace("UNI: ", "Unit ")
-    df["Legal"] = df["Legal"].str.replace("UNI:", "Unit ")
+    df["Legal"] = df["Legal"].str.replace("UNI: ", "UNIT ")
+    df["Legal"] = df["Legal"].str.replace("UNI:", "UNIT ")
     df["Legal"] = df["Legal"].str.replace("BDG: ", "BLDG ")
     df["Legal"] = df["Legal"].str.replace("Addition NO ", "")
     # if the legal column contains "BLK: xx" where x is a number then replace "BLK: xx" with ""
-    df["Legal"] = df["Legal"].str.replace("BLK: \d+", "", regex=True)
-    df["Legal"] = df["Legal"].str.replace("BLK: \s+", "", regex=True)
-    df["Legal"] = df["Legal"].str.replace("BLK:\d+", "", regex=True)
-    df["Legal"] = df["Legal"].str.replace("BLK:\s+", "", regex=True)
+    df["Legal"] = df["Legal"].str.replace("BLK: ", "BLK ", regex=True)
+    df["Legal"] = df["Legal"].str.replace("BLK:", "BLK ", regex=True)
+    # df["Legal"] = df["Legal"].str.replace("BLK:", "", regex=True)
+    # df["Legal"] = df["Legal"].str.replace("BLK:", "", regex=True)
     df["Legal"] = df["Legal"].str.replace("TPW: \d+", "", regex=True)
     df["Legal"] = df["Legal"].str.replace("TPW:\d+", "", regex=True)
     df["Legal"] = df["Legal"].str.replace("TPW:\s+", "", regex=True)
@@ -185,6 +195,7 @@ def parse_excel():
 
     # don't keep anything in legal that comes after a new line
     df["Legal"] = df["Legal"].str.split("\n").str[0]
+    df["Legal"] = df["Legal"].str.rstrip()
     df.drop(df[df["Legal"].str.len() < 10].index, inplace=True)
     df.drop(df[~df["Legal"].str.contains("\d")].index, inplace=True)
     df.drop(df[df["Legal"].str.contains("\d{4}-\d+-\w{2}")].index, inplace=True)
@@ -194,14 +205,65 @@ def parse_excel():
     # df.to_csv(workingDir + "\\SearchResults.csv", index=False)
     return df
 
+# This function will set lists used by Search_by_Legal to empty
+def RowNA(PropertyAddress, PropertyCity, PropertyState, PropertyZip, Name, MailingAddress, MailingCity, MailingState,
+          MailingZip, index):
+    PropertyAddress.append("NA")
+    PropertyCity.append("NA")
+    PropertyState.append("NA")
+    PropertyZip.append("NA")
+    Name.append("NA")
+    MailingAddress.append("NA")
+    MailingCity.append("NA")
+    MailingState.append("NA")
+    MailingZip.append("NA")
+    print("No Results Found for row " + str(index))
+
+# This Function grabs the relevent information from the website
+def ParseWebsite(driver, PropertyAddress, PropertyCity, PropertyState, PropertyZip, Name, MailingAddress, MailingCity,
+                 MailingState, MailingZip, index):
+    text = driver.find_element(By.CSS_SELECTOR,
+                               ".module-content > .tabular-data-two-column tr:nth-child(2) span").text
+    PropertyAddress.append(text.split("\n")[0])
+    print("Street: " + PropertyAddress[index])
+    PropertyCity.append(text.split("\n")[1])
+    # Take the number at the very end of PropertyCity and put it in PropertyZip
+    PropertyZip.append(PropertyCity[index].split(" ")[-1])
+    PropertyCity[index] = " ".join(PropertyCity[index].split(" ")[:-1])
+    PropertyState.append("FL")
+    print("City: " + PropertyCity[index])
+    print("State: " + PropertyState[index])
+    print("Zip: " + PropertyZip[index])
+
+    text = driver.find_element(By.CSS_SELECTOR, ".three-column-blocks:nth-child(1)").text
+    Name.append(text.split("\n")[0])
+    print("Name: " + Name[index])
+    MailingAddress.append(text.split("\n")[1])
+    print("Mailing Address: " + MailingAddress[index])
+    MailingCity.append(text.split("\n")[2])
+
+    # Take the number at the very end of MailingCity and put it in MailingZip
+    MailingZip.append(MailingCity[index].split(" ")[-1])
+    MailingCity[index] = " ".join(MailingCity[index].split(" ")[:-1])
+
+    # take the last word from MailingCity and put it in MailingState
+    MailingState.append(MailingCity[index].split(" ")[-1])
+    MailingCity[index] = " ".join(MailingCity[index].split(" ")[:-1])
+    print("Mailing City: " + MailingCity[index])
+    print("mailing State: " + MailingState[index])
+    print("Mailing Zip: " + MailingZip[index])
+
+
 # This function will take the dataframe and search https://qpublic.schneidercorp.com/Application.aspx?AppID=830&LayerID=15008&PageTypeID=2&PageID=6754
 # using the legal columns in the Search by Legal Information Section
 def search_by_legal(df):
+    # Use Udetected Chrome to open this website Thanks Cloudflare
     driver = uc.Chrome()
     driver.get("https://qpublic.schneidercorp.com/Application.aspx?AppID=830&LayerID=15008&PageTypeID=2&PageID=6754")
     driver.implicitly_wait(60)
     driver.find_element(By.LINK_TEXT, "Agree").click()
 
+    # Create Lists to store the information
     PropertyAddress = []
     PropertyCity = []
     PropertyState = []
@@ -223,49 +285,41 @@ def search_by_legal(df):
         search_by_legal_info.send_keys(row["Legal"])
         search_by_legal_info.send_keys(Keys.ENTER)
         driver.implicitly_wait(10)
+
         # if ctlBodyPane_ctl00_ctl01_gvwParcelResults is found then the search is too broad, append the PropertyAddress, PropertyCity, PropertyState, PropertyZip, Name, MailingAddress, MailingCity, MailingState, MailingZip with "N/A"
         if driver.find_elements(By.CSS_SELECTOR, ".module-content > .tabular-data-two-column tr:nth-child(2) span"):
-            text = driver.find_element(By.CSS_SELECTOR,
-                                   ".module-content > .tabular-data-two-column tr:nth-child(2) span").text
-            PropertyAddress.append(text.split("\n")[0])
-            print("Street: " + PropertyAddress[index])
-            PropertyCity.append(text.split("\n")[1])
-            # Take the number at the very end of PropertyCity and put it in PropertyZip
-            PropertyZip.append(PropertyCity[index].split(" ")[-1])
-            PropertyCity[index] = " ".join(PropertyCity[index].split(" ")[:-1])
-            PropertyState.append("FL")
-            print("City: " + PropertyCity[index])
-            print("State: " + PropertyState[index])
-            print("Zip: " + PropertyZip[index])
+            ParseWebsite(driver, PropertyAddress, PropertyCity, PropertyState, PropertyZip, Name, MailingAddress,
+                         MailingCity, MailingState, MailingZip, index)
 
-            text = driver.find_element(By.CSS_SELECTOR, ".three-column-blocks:nth-child(1)").text
-            Name.append(text.split("\n")[0])
-            print("Name: " + Name[index])
-            MailingAddress.append(text.split("\n")[1])
-            print("Mailing Address: " + MailingAddress[index])
-            MailingCity.append(text.split("\n")[2])
-
-            # Take the number at the very end of MailingCity and put it in MailingZip
-            MailingZip.append(MailingCity[index].split(" ")[-1])
-            MailingCity[index] = " ".join(MailingCity[index].split(" ")[:-1])
-
-            # take the last word from MailingCity and put it in MailingState
-            MailingState.append(MailingCity[index].split(" ")[-1])
-            MailingCity[index] = " ".join(MailingCity[index].split(" ")[:-1])
-            print("Mailing City: " + MailingCity[index])
-            print("mailing State: " + MailingState[index])
-            print("Mailing Zip: " + MailingZip[index])
+        # if the Legal dataframe can be found within the search table  copy the text and research the legal
+        elif driver.find_elements(By.ID, "ctlBodyPane_ctl00_ctl01_gvwParcelResults"):
+            legalChange = False
+            Table = driver.find_element(By.ID, "ctlBodyPane_ctl00_ctl01_gvwParcelResults")
+            for tableRow in Table.find_elements(By.CSS_SELECTOR, "tr"):
+                for Column in tableRow.find_elements(By.CSS_SELECTOR, "td"):
+                    if row["Legal"] in Column.text:
+                        row["Legal"] = Column.text
+                        legalChange = True
+            # if the legal was changed then search the new legal information
+            if legalChange:
+                driver.get(
+                    "https://qpublic.schneidercorp.com/Application.aspx?AppID=830&LayerID=15008&PageTypeID=2&PageID=6754")
+                driver.implicitly_wait(5)
+                search_by_legal_info = driver.find_element(By.ID, "ctlBodyPane_ctl05_ctl01_txtName")
+                search_by_legal_info.send_keys(row["Legal"])
+                search_by_legal_info.send_keys(Keys.ENTER)
+                time.sleep(5)
+                ParseWebsite(driver, PropertyAddress, PropertyCity, PropertyState, PropertyZip,
+                             Name, MailingAddress, MailingCity, MailingState, MailingZip, index)
+            # if that search failed we do not have enough information and this row will be NA
+            else:
+                RowNA(PropertyAddress, PropertyCity, PropertyState, PropertyZip, Name,
+                      MailingAddress, MailingCity, MailingState, MailingZip, index)
+                continue
+        # Default TO N/A if website leads to a dead end
         else:
-            PropertyAddress.append("N/A")
-            PropertyCity.append("N/A")
-            PropertyState.append("N/A")
-            PropertyZip.append("N/A")
-            Name.append("N/A")
-            MailingAddress.append("N/A")
-            MailingCity.append("N/A")
-            MailingState.append("N/A")
-            MailingZip.append("N/A")
-            print("No Result for row: " + str(index))
+            RowNA(PropertyAddress, PropertyCity, PropertyState, PropertyZip, Name,
+                  MailingAddress, MailingCity, MailingState, MailingZip, index)
             continue
     df["Name"] = Name
     df["PropertyAddress"] = PropertyAddress
@@ -293,13 +347,10 @@ def search_by_legal(df):
 
 
 
-
-
-
 # docType = get_doc_type()
 # start_date, end_date = get_date_range()
 # driver = init_driver()
-fill_out_form(start_date="01/01/2023", end_date="03/01/2023", doc_type="CD, J, LN, LP, LPC, PRO")
+# fill_out_form(start_date="01/01/2023", end_date="03/01/2023", doc_type="CD, J, LN, LP, LPC, PRO")
 df = parse_excel()
 search_by_legal(df)
 
