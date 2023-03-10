@@ -115,7 +115,7 @@ def CleanUp():
     # Save the csv file to the Downloads/Probate folder good for comparing the data
     # savePath = os.getcwd() + "/Downloads/" + docType + ".csv"
     # DataFrame.to_csv(savePath, index=False)
-    DataFrame.to_csv(os.getcwd() + "/Downloads/Probate.csv", index=False)
+    # DataFrame.to_csv(os.getcwd() + "/Downloads/Probate.csv", index=False)
     return DataFrame
 
 def PropertySearch(dataframe: pd.DataFrame):
@@ -152,7 +152,6 @@ def PropertySearch(dataframe: pd.DataFrame):
 
     # loop through the RE# list and search for the RE# on https://paopropertysearch.coj.net/Basic/Results.aspx
     URLList = []
-    print(len(REList))
     for i in range(len(REList)):
         REList[i] = REList[i].replace("-", "")
         REList[i] = REList[i].replace(" ", "")
@@ -319,8 +318,8 @@ def PropertySearch(dataframe: pd.DataFrame):
 
     # Date1 is a string of yesterday in the format of "Jan012020", date2 is a string of today in the format of "Jan022020"
     # and then the two strings are combined to create a string of "Jan012020-Jan022020"
-    NewCSVFile = "Parsed/" + DocType +".csv"
-    EstateCSVFile = "Parsed/" + DocType + "-" + "Estate.csv"
+    NewCSVFile = os.getcwd() + "\\Parsed\\" + DocType +".csv"
+    EstateCSVFile = os.getcwd() + "\\Parsed\\" + DocType + "-" + "Estate.csv"
 
     # IF "IndirectName": "ESTATE" in completedData. Create a new Dataframe to store the rows that have "ESTATE" in the IndirectName column
     # Then drop the rows that have "ESTATE" in the IndirectName column from the CompletedData Dataframe
@@ -347,8 +346,3 @@ def PropertySearch(dataframe: pd.DataFrame):
         print("Saving CSV to: " + NewCSVFile)
         CompletedData.to_csv(NewCSVFile, index=False)
 
-
-
-
-df = CleanUp()
-PropertySearch(df)

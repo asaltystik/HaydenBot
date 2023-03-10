@@ -14,6 +14,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import JudgementDuvalCounty
+import ProbatesDuvalCounty
 
 # chrome settings
 chrome_options = webdriver.ChromeOptions()
@@ -548,8 +549,8 @@ def Menu():
             if choice == "1":
                 StartDate, EndDate = UnAutomated()
                 onCoreScrape("probate")
-                df = CleanUp()
-                PropertySearch(df)
+                df = ProbatesDuvalCounty.CleanUp()
+                ProbatesDuvalCounty.PropertySearch(df)
             # If the user's input is 2, run the Lien option
             elif choice == "2":
                 StartDate, EndDate = UnAutomated()
