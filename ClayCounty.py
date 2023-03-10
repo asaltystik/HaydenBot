@@ -348,11 +348,11 @@ def search_by_legal(df):
             MiddleName.append("Company")
         # else split the name into first, middle, and last name
         elif len(Name[i].split(" ")) > 2:
-            FirstName.append(Name[i].split(" ")[0])
-            LastName.append(Name[i].split(" ")[1])
+            FirstName.append(Name[i].split(" ")[1])
+            LastName.append(Name[i].split(" ")[0])
         else:
-            FirstName.append(Name[i].split(" ")[0])
-            LastName.append(Name[i].split(" ")[-1])
+            FirstName.append(Name[i].split(" ")[-1])
+            LastName.append(Name[i].split(" ")[0])
 
     df["Name"] = Name
     df["FirstName"] = FirstName
