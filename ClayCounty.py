@@ -339,6 +339,8 @@ def search_by_legal(df):
     # loop through the list of names and split them into first, middle, and last name
     for i in range(len(Name)):
         print(Name[i])
+        if "Estate of" in Name[i]:
+            Name[i] = Name[i].replace("Estate of", "")
         # if name contains LLC then it is a company and we do not need to split the name
         if "LLC" in Name[i]:
             FirstName.append("Company")
@@ -379,6 +381,7 @@ def search_by_legal(df):
     # Split the Dataframe into two depending on if the FirstName is Company
     dfCompany = df[df["FirstName"] == "Company"]
     dfPerson = df[df["FirstName"] != "Company"]
+    dfCompany.drop(columns=["FirstName", "LastName"], inplace=True)
     # remove slashes from the start date and end date
     CompanySave = workingDir + "\\Parsed\\CompanyList-" + savedate1 + "-" + savedate2 + ".csv"
     PersonSave = workingDir + "\\Parsed\\PersonList-" + savedate1 + "-" + savedate2 + ".csv"
