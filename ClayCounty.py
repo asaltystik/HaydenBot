@@ -16,6 +16,7 @@
 # Importing the necessary modules
 import os
 import time
+import datetime
 import pandas as pd
 from selenium import webdriver
 from selenium.common import NoSuchElementException
@@ -263,7 +264,7 @@ def ParseWebsite(driver, PropertyAddress, PropertyCity, PropertyState, PropertyZ
 
 # This function will take the dataframe and search https://qpublic.schneidercorp.com/Application.aspx?AppID=830&LayerID=15008&PageTypeID=2&PageID=6754
 # using the legal columns in the Search by Legal Information Section
-def search_by_legal(df):
+def search_by_legal(df, start_date, end_date):
     savedate1 = start_date
     savedate2 = end_date
     savedate1 = savedate1.replace("/", "-")
@@ -390,13 +391,25 @@ def search_by_legal(df):
     dfPerson.to_csv(PersonSave, index=False)
 
 
+def Menu():
+    print("1. Run Bot")
+    print("2. Exit")
+    choice = input("Enter Choice: ")
+    if choice == "1":
+        start_date, end_date = get_date_range()
+        fill_out_form(start_date=start_date, end_date=end_date, doc_type="CD, J, LN, LP, LPC, PRO")
+        df = parse_excel()
+        search_by_legal(df, start_date=start_date, end_date=end_date)
+    elif choice == "2":
+        return
+    else:
+        print("Invalid Choice")
+        Menu()
 
 
-# docType = get_doc_type()
-start_date, end_date = get_date_range()
-# driver = init_driver()
-fill_out_form(start_date=start_date, end_date=end_date, doc_type="CD, J, LN, LP, LPC, PRO")
-df = parse_excel()
-search_by_legal(df)
-
-
+def RunDaily():
+    start_date = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime("%m/%d/%Y")
+    end_date = datetime.datetime.now().strftime("%m/%d/%Y")
+    fill_out_form(start_date=start_date, end_date=end_date, doc_type="CD, J, LN, LP, LPC, PRO")
+    df = parse_excel()
+    search_by_legal(df, start_date=start_date, end_date=end_date)
