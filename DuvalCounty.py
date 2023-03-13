@@ -493,13 +493,10 @@ def DeathCleanup():
     return df
 
 
-def RunDaily():
+def RunToday():
     global StartDate, EndDate
     StartDate = (datetime.today() - timedelta(days=1)).strftime('%m/%d/%Y')
     EndDate = datetime.today().strftime('%m/%d/%Y')
-    onCoreScrape("probate")
-    df = CleanUp()
-    PropertySearch(df)
     onCoreScrape("lien")
     df = CleanUp()
     PropertySearch(df)
@@ -509,6 +506,9 @@ def RunDaily():
     onCoreScrape("lis pendens")
     df = CleanUp()
     PropertySearch(df)
+    onCoreScrape("probate")
+    df = ProbatesDuvalCounty.CleanUp()
+    ProbatesDuvalCounty.PropertySearch(df)
     onCoreScrape("judgment")
     df = JudgementDuvalCounty.CleanJudgement()
     JudgementDuvalCounty.PropertySearch()
@@ -521,14 +521,14 @@ def Menu():
     # print a stylish menu to the console using DocTypes as the options
     print("Duval County Property Search")
     # Give the Option to run the program for a specific date range + DocType or just run Daily option
-    print("1. Run Daily")
+    print("1. Run Today")
     print("2. Run for a specific date range")
     print("3. Exit")
     # Get the user's input
     choice = input("Enter your choice: ")
     # If the user's input is 1, run the Daily option
     if choice == "1":
-        RunDaily()
+        RunToday()
     # If the user's input is 2, run the specific date range option
     elif choice == "2":
         while not ExitSearch:
@@ -590,7 +590,8 @@ def Menu():
             elif choice == "7":
                 ExitSearch = True
     elif choice == "3":
-        exit()
+        # Leave the function
+        return
     Menu()
 
 
